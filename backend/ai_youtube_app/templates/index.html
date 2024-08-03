@@ -122,12 +122,10 @@
                 const data = await response.json();
 
                 summaryContent.innerHTML = data.content;
-                loadingIndicator.classList.add('hidden');
 
             } catch (error) {
                 console.error("Error occurred:", error);
                 alert("Something went wrong. Please try again later.");
-                loadingIndicator.classList.add('hidden');
                 
             }
             document.getElementById('loading-circle').style.display = 'none';

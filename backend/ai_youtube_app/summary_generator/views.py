@@ -41,18 +41,20 @@ def generate_summary(request):
 
 
         #retutn summary as response
-        
-
+        return JsonResponse ({'content':summary_content})
     else:
-        return JsonResponse({'error': 'Invalid Request Method'}, status= 405)
+        return JsonResponse({'error': 'Invalid Request Method'}, status=405)
     
-    def yt_title(link):
+    
+    
+    
+def yt_title(link):
         yt = YouTube(link)
         title = yt.title
         return title
     
-    def download_audio(link):
-        yt = Youtube(link)
+def download_audio(link):
+        yt = YouTube(link)
         video = yt.streams.filter(only_audio=True).first()
         out_file=video.download(output_path=settings.MEDIA_ROOT)
         base, ext =os.path.splitext(out_file)
@@ -60,23 +62,23 @@ def generate_summary(request):
         os.rename(out_file, new_file)
         return new_file
 
-    def get_transcription(link):
+def get_transcription(link):
         audio_file = download_audio(link)
         aai.settings.api_key = os.getenv('apii')
         transcriber = aai.Transcriber()
-        transcriber = transcriber.transcribe(audio_file)
-        return transcriber.text
+        transcript = transcriber.transcribe(audio_file)
+        return transcript.text
          
 
-    def generate_summary_from_transcription(transcription):
-        openai.api_key = os.getenv('key')
+def generate_summary_from_transcription(transcription):
+    openai.api_key = os.getenv('key')
 
-        prompt = f"Based on the following transcript from a Youtube video, write a comprehensive summary, write it based on the transcript, but dont make it look like a youtube video, make it look like a proper summary:\n\n{transcription}\n\nSummary:"
-        response = openai.completions.create(
-            model="text-davinci-003",
-            prompt= prompt
-            max_tokens=1000
-        )
+    prompt = f"Based on the following transcript from a Youtube video, write a comprehensive summary, write it based on the transcript, but dont make it look like a youtube video, make it look like a proper summary:\n\n{transcription}\n\nSummary:"
+    response = openai.completions.create(
+        model="text-davinci-003",
+        prompt= prompt,
+        max_tokens=1000
+    )
 
     generated_content= response.choices[0].text.strip()
 
