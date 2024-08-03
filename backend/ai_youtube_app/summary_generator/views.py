@@ -33,12 +33,15 @@ def generate_summary(request):
             return JsonResponse({'error': "Failed to get Transcript"}, status=500)
 
         #use open ai to generate summary 
-
+        summary_content =generate_summary_from_transcription(transcription)
+        if not summary_content:
+            return JsonResponse({'error': "Failed to generate Summary"}, status=500)
 
         #save article to db
 
 
         #retutn summary as response
+        
 
     else:
         return JsonResponse({'error': 'Invalid Request Method'}, status= 405)
@@ -76,7 +79,7 @@ def generate_summary(request):
         )
 
     generated_content= response.choices[0].text.strip()
-    
+
     return generated_content
 
 def user_login (request):
