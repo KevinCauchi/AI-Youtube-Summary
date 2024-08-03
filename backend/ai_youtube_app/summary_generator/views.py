@@ -10,6 +10,8 @@ from pytube import YouTube
 import os
 import assemblyai as aai
 import openai
+from .models import SummaryPost
+
 
 # Create your views here.
 @login_required
@@ -26,11 +28,15 @@ def generate_summary(request):
             return JsonResponse({'error': 'Invalid Data Sent'}, status= 400)
         
         #get tittle
+
         title = yt_title(yt_link)
+
+
         #get transcript
         transcription = get_transcription(yt_link)
         if not transcription: 
             return JsonResponse({'error': "Failed to get Transcript"}, status=500)
+
 
         #use open ai to generate summary 
         summary_content =generate_summary_from_transcription(transcription)
@@ -38,6 +44,13 @@ def generate_summary(request):
             return JsonResponse({'error': "Failed to generate Summary"}, status=500)
 
         #save article to db
+        new_summary_article = SummaryPost.objects.create(
+             user=request.user,
+             youtube_title=title,
+             youtube_link=yt_link,
+             generated_content=summary_content,
+        )
+        new_summary_article.save
 
 
         #retutn summary as response
