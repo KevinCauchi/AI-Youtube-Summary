@@ -9,6 +9,7 @@ import json
 from pytube import YouTube
 import os
 import assemblyai as aai
+import openai
 
 # Create your views here.
 @login_required
@@ -21,16 +22,22 @@ def generate_summary(request):
         try:
             data = json.loads(request.body)
             yt_link =  data['link']
-            return JsonResponse({'content': yt_link})
         except (KeyError, json.JSONDecodeError):
             return JsonResponse({'error': 'Invalid Data Sent'}, status= 400)
         
         #get tittle
         title = yt_title(yt_link)
         #get transcript
+        transcription = get_transcription(yt_link)
+        if not transcription: 
+            return JsonResponse({'error': "Failed to get Transcript"}, status=500)
 
         #use open ai to generate summary 
+
+
         #save article to db
+
+
         #retutn summary as response
 
     else:
@@ -51,10 +58,26 @@ def generate_summary(request):
         return new_file
 
     def get_transcription(link):
-         audio_file = download_audio(link)
-         aai.settings.api_key = apii
-    
+        audio_file = download_audio(link)
+        aai.settings.api_key = os.getenv('apii')
+        transcriber = aai.Transcriber()
+        transcriber = transcriber.transcribe(audio_file)
+        return transcriber.text
+         
 
+    def generate_summary_from_transcription(transcription):
+        openai.api_key = os.getenv('key')
+
+        prompt = f"Based on the following transcript from a Youtube video, write a comprehensive summary, write it based on the transcript, but dont make it look like a youtube video, make it look like a proper summary:\n\n{transcription}\n\nSummary:"
+        response = openai.completions.create(
+            model="text-davinci-003",
+            prompt= prompt
+            max_tokens=1000
+        )
+
+    generated_content= response.choices[0].text.strip()
+    
+    return generated_content
 
 def user_login (request):
     if request.method =='POST':
